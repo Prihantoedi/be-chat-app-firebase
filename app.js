@@ -1,4 +1,9 @@
-const express = require("express");
+import { initializeApp } from "firebase/app";
+import { getAuth } from "firebase/auth";
+import { firebaseConfig } from "./FirebaseConfig.js";
+import express from "express";
+
+// const express = require("express");
 
 const app = express();
 
@@ -14,7 +19,8 @@ app.listen(PORT, () => {
 
 app.get("/status", (request, response) => {
     const status = {
-        "Status" : "Running"
+        "Status" : "Running",
+        "FirebaseConfig": firebaseConfig
     };
 
     response.send(status);
