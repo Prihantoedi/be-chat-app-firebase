@@ -1,8 +1,9 @@
 import { initializeApp } from "firebase/app";
-import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "firebase/auth";
 import { firebaseConfig } from "./FirebaseConfig.js";
 import dotenv from "dotenv";
 import cors from "cors";
+import bodyParser from "body-parser";
 import express from "express";
 
 dotenv.config();
@@ -10,7 +11,9 @@ dotenv.config();
 
 const app = express();
 
-app.use(express.json());
+const firebaseApp = initializeApp(firebaseConfig);
+const firebaseAuth = getAuth(firebaseApp);
+// app.use(express.json());
 
 let allowedOrigins = ["http://localhost"];
 app.use(cors({
@@ -25,8 +28,11 @@ app.use(cors({
 
         return callback(null, true);
     }
-    // origin: "http://localhost:80"
 }));
+
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended: true}));
+
 
 const PORT = process.env.PORT || 3000;
 
@@ -44,7 +50,94 @@ app.get("/status", (request, response) => {
     response.status(200).send(res);
 });
 
-app.get("/api/chat-app-firebase/v1/signin", (request, response) => {
-    console.log(request.body);
-    response.status(200).send("It's work!");
+app.post("/api/chat-app-firebase/v1/signin", (request, response) => {
+    const data = request.body;
+    const email = data.email;
+    const password = data.password;
+
+    let authResponseList = new Map([
+        ["Firebase: Error (auth/wrong-password).", "Invalid Password"],
+        ["Firebase: Error (auth/user-not-found).", "Email not registered"]
+    ]);
+
+    signInWithEmailAndPassword(firebaseAuth, email, password)
+    .then((userCredential) => {
+        const user = userCredential.user;
+        const accessToken = user.accessToken;
+        const res = {
+            "Status" : "Accepted",
+            "AccessToken" : accessToken
+        };
+        response.status(200).send(res);
+    }).
+    catch((error) => {
+        const res = {
+            "Status" : "Rejected",
+            "Message" : authResponseList.get(error.message)
+        };
+
+        response.status(400).send(res);
+    });
+
+});
+
+app.post("/api/chat-app-firebase/v1/authorization/checker", (request, response) => {
+    const data = request.body;
+    const token = data.accessToken;
+
+    onAuthStateChanged(firebaseAuth, (user) => {
+        if(user){
+            if(user.accessToken == token){
+                const res = {
+                    "Status" : "Accepted"
+                };
+
+                return response.status(200).send(res);
+                
+            } else{
+                const res = {
+                    "Status" : "Rejected",
+                    "Message" : "Invalid Token Access!"
+                };
+                return response.status(400).send(res);
+            }
+        } else{
+            const res = {
+                "Status" : "Rejected",
+                "Message" : "Illegal Attempt!"
+            };
+
+            return response.status(400).send(res);
+        }
+    });
+
+});
+
+app.post("/api/chat-app-firebase/v1/destroy", (request, response) => {
+    // const data = request.body;
+    // const token = data.accessToken;
+
+    // response.status(200).send({"Status" : "Okay"});
+    let res = {"Status": "Accepted", "Message" : "Sign Out Successfully"};
+    signOut(firebaseAuth).then(() => {
+       return response.status(200).send(res); 
+    }).catch((error) => {
+        res = {
+            "Status" : "Rejected",
+            "Message" : error
+        };
+        return response.status(400).send(res);
+    });
+    // response.status(200).send(res);
+    // console.log(res.Status);
+
+    // if(res.Status === "Accepted"){
+    //     response.status(200).send(res);
+    // } else{
+    //     response.status(400).send(res);
+    // }
+    
+
+    
+   
 });
