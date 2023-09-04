@@ -7,6 +7,8 @@ WORKDIR /usr/src/app
 # where available (npm@5+)
 COPY package*.json ./
 
+RUN npm test
+
 RUN npm install
 
 # If your are building your code for production
@@ -19,3 +21,4 @@ COPY . .
 EXPOSE 3000
 
 CMD ["node", "app.js"]
+
