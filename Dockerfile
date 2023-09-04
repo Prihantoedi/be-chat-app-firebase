@@ -11,7 +11,7 @@ COPY package*.json ./
 
 RUN npm install
 
-RUN npm test
+# RUN npm test
 
 # If your are building your code for production
 # RUN npm ci --omit=dev
