@@ -7,9 +7,11 @@ WORKDIR /usr/src/app
 # where available (npm@5+)
 COPY package*.json ./
 
-RUN npm test
+
 
 RUN npm install
+
+RUN npm test
 
 # If your are building your code for production
 # RUN npm ci --omit=dev
