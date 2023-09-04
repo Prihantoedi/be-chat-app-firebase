@@ -1,0 +1,17 @@
+steps:
+- name: 'node:16'
+  entrypoint: 'npm'
+  args: ['install']
+
+- name: 'node:16'
+  entrypoint: 'npm'
+  args: ['test']
+
+- name: 'node:16'
+  entrypoint: 'npm'
+  args: ['run', 'build']
+
+   artifacts:
+    npmPackages:
+    - repository: 'https://asia-southeast2-npm.pkg.dev/spiritual-aloe-397911/Prihantoedi/be-chat-app-firebase'
+      packagePath: '.'
